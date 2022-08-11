@@ -2,11 +2,12 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package json
+package goj
 
 import (
 	"bytes"
 	"encoding"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"image"
@@ -34,7 +35,7 @@ type U struct {
 type V struct {
 	F1 any
 	F2 int32
-	F3 Number
+	F3 json.Number
 	F4 *VOuter
 }
 
@@ -71,10 +72,10 @@ var ifaceNumAsFloat64 = map[string]any{
 }
 
 var ifaceNumAsNumber = map[string]any{
-	"k1": Number("1"),
+	"k1": json.Number("1"),
 	"k2": "s",
-	"k3": []any{Number("1"), Number("2.0"), Number("3e-3")},
-	"k4": map[string]any{"kk1": "s", "kk2": Number("2")},
+	"k3": []any{json.Number("1"), json.Number("2.0"), json.Number("3e-3")},
+	"k4": map[string]any{"kk1": "s", "kk2": json.Number("2")},
 }
 
 type tx struct {
@@ -413,10 +414,10 @@ var unmarshalTests = []unmarshalTest{
 	{in: `1`, ptr: new(int), out: 1},
 	{in: `1.2`, ptr: new(float64), out: 1.2},
 	{in: `-5`, ptr: new(int16), out: int16(-5)},
-	{in: `2`, ptr: new(Number), out: Number("2"), useNumber: true},
-	{in: `2`, ptr: new(Number), out: Number("2")},
+	{in: `2`, ptr: new(json.Number), out: json.Number("2"), useNumber: true},
+	{in: `2`, ptr: new(json.Number), out: json.Number("2")},
 	{in: `2`, ptr: new(any), out: float64(2.0)},
-	{in: `2`, ptr: new(any), out: Number("2"), useNumber: true},
+	{in: `2`, ptr: new(any), out: json.Number("2"), useNumber: true},
 	{in: `"a\u1234"`, ptr: new(string), out: "a\u1234"},
 	{in: `"http:\/\/"`, ptr: new(string), out: "http://"},
 	{in: `"g-clef: \uD834\uDD1E"`, ptr: new(string), out: "g-clef: \U0001D11E"},
@@ -427,8 +428,8 @@ var unmarshalTests = []unmarshalTest{
 	{in: `{"x": 1}`, ptr: new(tx), out: tx{}},
 	{in: `{"x": 1}`, ptr: new(tx), err: fmt.Errorf("json: unknown field \"x\""), disallowUnknownFields: true},
 	{in: `{"S": 23}`, ptr: new(W), out: W{}, err: &UnmarshalTypeError{"number", reflect.TypeOf(SS("")), 0, "W", "S"}},
-	{in: `{"F1":1,"F2":2,"F3":3}`, ptr: new(V), out: V{F1: float64(1), F2: int32(2), F3: Number("3")}},
-	{in: `{"F1":1,"F2":2,"F3":3}`, ptr: new(V), out: V{F1: Number("1"), F2: int32(2), F3: Number("3")}, useNumber: true},
+	{in: `{"F1":1,"F2":2,"F3":3}`, ptr: new(V), out: V{F1: float64(1), F2: int32(2), F3: json.Number("3")}},
+	{in: `{"F1":1,"F2":2,"F3":3}`, ptr: new(V), out: V{F1: json.Number("1"), F2: int32(2), F3: json.Number("3")}, useNumber: true},
 	{in: `{"k1":1,"k2":"s","k3":[1,2.0,3e-3],"k4":{"kk1":"s","kk2":2}}`, ptr: new(any), out: ifaceNumAsFloat64},
 	{in: `{"k1":1,"k2":"s","k3":[1,2.0,3e-3],"k4":{"kk1":"s","kk2":2}}`, ptr: new(any), out: ifaceNumAsNumber, useNumber: true},
 
@@ -454,7 +455,7 @@ var unmarshalTests = []unmarshalTest{
 	{in: `[1, 2, 3+]`, err: &SyntaxError{"invalid character '+' after array element", 9}},
 	{in: `{"X":12x}`, err: &SyntaxError{"invalid character 'x' after object key:value pair", 8}, useNumber: true},
 	{in: `[2, 3`, err: &SyntaxError{msg: "unexpected end of JSON input", Offset: 5}},
-	{in: `{"F3": -}`, ptr: new(V), out: V{F3: Number("-")}, err: &SyntaxError{msg: "invalid character '}' in numeric literal", Offset: 9}},
+	{in: `{"F3": -}`, ptr: new(V), out: V{F3: json.Number("-")}, err: &SyntaxError{msg: "invalid character '}' in numeric literal", Offset: 9}},
 
 	// raw value errors
 	{in: "\x01 42", err: &SyntaxError{"invalid character '\\x01' looking for beginning of value", 1}},
@@ -953,7 +954,7 @@ var unmarshalTests = []unmarshalTest{
 	// #14702
 	{
 		in:  `invalid`,
-		ptr: new(Number),
+		ptr: new(json.Number),
 		err: &SyntaxError{
 			msg:    "invalid character 'i' looking for beginning of value",
 			Offset: 1,
@@ -961,24 +962,24 @@ var unmarshalTests = []unmarshalTest{
 	},
 	{
 		in:  `"invalid"`,
-		ptr: new(Number),
+		ptr: new(json.Number),
 		err: fmt.Errorf("json: invalid number literal, trying to unmarshal %q into Number", `"invalid"`),
 	},
 	{
 		in:  `{"A":"invalid"}`,
-		ptr: new(struct{ A Number }),
+		ptr: new(struct{ A json.Number }),
 		err: fmt.Errorf("json: invalid number literal, trying to unmarshal %q into Number", `"invalid"`),
 	},
 	{
 		in: `{"A":"invalid"}`,
 		ptr: new(struct {
-			A Number `json:",string"`
+			A json.Number `json:",string"`
 		}),
 		err: fmt.Errorf("json: invalid use of ,string struct tag, trying to unmarshal %q into json.Number", `invalid`),
 	},
 	{
 		in:  `{"A":"invalid"}`,
-		ptr: new(map[string]Number),
+		ptr: new(map[string]json.Number),
 		err: fmt.Errorf("json: invalid number literal, trying to unmarshal %q into Number", `"invalid"`),
 	},
 }
@@ -1026,14 +1027,14 @@ func TestMarshalBadUTF8(t *testing.T) {
 }
 
 func TestMarshalNumberZeroVal(t *testing.T) {
-	var n Number
+	var n json.Number
 	out, err := Marshal(n)
 	if err != nil {
 		t.Fatal(err)
 	}
 	outStr := string(out)
 	if outStr != "0" {
-		t.Fatalf("Invalid zero val for Number: %q", outStr)
+		t.Fatalf("Invalid zero val for json.Number: %q", outStr)
 	}
 }
 
@@ -1204,22 +1205,22 @@ var numberTests = []struct {
 	{in: "1e1000", intErr: "strconv.ParseInt: parsing \"1e1000\": invalid syntax", floatErr: "strconv.ParseFloat: parsing \"1e1000\": value out of range"},
 }
 
-// Independent of Decode, basic coverage of the accessors in Number
+// Independent of Decode, basic coverage of the accessors in json.Number
 func TestNumberAccessors(t *testing.T) {
 	for _, tt := range numberTests {
-		n := Number(tt.in)
+		n := json.Number(tt.in)
 		if s := n.String(); s != tt.in {
-			t.Errorf("Number(%q).String() is %q", tt.in, s)
+			t.Errorf("json.Number(%q).String() is %q", tt.in, s)
 		}
 		if i, err := n.Int64(); err == nil && tt.intErr == "" && i != tt.i {
-			t.Errorf("Number(%q).Int64() is %d", tt.in, i)
+			t.Errorf("json.Number(%q).Int64() is %d", tt.in, i)
 		} else if (err == nil && tt.intErr != "") || (err != nil && err.Error() != tt.intErr) {
-			t.Errorf("Number(%q).Int64() wanted error %q but got: %v", tt.in, tt.intErr, err)
+			t.Errorf("json.Number(%q).Int64() wanted error %q but got: %v", tt.in, tt.intErr, err)
 		}
 		if f, err := n.Float64(); err == nil && tt.floatErr == "" && f != tt.f {
-			t.Errorf("Number(%q).Float64() is %g", tt.in, f)
+			t.Errorf("json.Number(%q).Float64() is %g", tt.in, f)
 		} else if (err == nil && tt.floatErr != "") || (err != nil && err.Error() != tt.floatErr) {
-			t.Errorf("Number(%q).Float64() wanted error %q but got: %v", tt.in, tt.floatErr, err)
+			t.Errorf("json.Number(%q).Float64() wanted error %q but got: %v", tt.in, tt.floatErr, err)
 		}
 	}
 }
@@ -2285,7 +2286,7 @@ func TestUnmarshalEmbeddedUnexported(t *testing.T) {
 		in:  `{"R":2,"Q":1}`,
 		ptr: new(S1),
 		out: &S1{R: 2},
-		err: fmt.Errorf("json: cannot set embedded pointer to unexported struct: json.embed1"),
+		err: fmt.Errorf("json: cannot set embedded pointer to unexported struct: goj.embed1"),
 	}, {
 		// The top level Q field takes precedence.
 		in:  `{"Q":1}`,
@@ -2307,7 +2308,7 @@ func TestUnmarshalEmbeddedUnexported(t *testing.T) {
 		in:  `{"R":2,"Q":1}`,
 		ptr: new(S5),
 		out: &S5{R: 2},
-		err: fmt.Errorf("json: cannot set embedded pointer to unexported struct: json.embed3"),
+		err: fmt.Errorf("json: cannot set embedded pointer to unexported struct: goj.embed3"),
 	}, {
 		// Issue 24152, ensure decodeState.indirect does not panic.
 		in:  `{"embed1": {"Q": 1}}`,

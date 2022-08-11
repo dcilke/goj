@@ -5,11 +5,12 @@
 // Represents JSON data structure using native Go types: booleans, floats,
 // strings, arrays, and maps.
 
-package json
+package goj
 
 import (
 	"encoding"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -185,21 +186,21 @@ func (d *decodeState) unmarshal(v any) error {
 	return d.savedError
 }
 
-// A Number represents a JSON number literal.
-type Number string
+// // A Number represents a JSON number literal.
+// type Number string
 
-// String returns the literal text of the number.
-func (n Number) String() string { return string(n) }
+// // String returns the literal text of the number.
+// func (n Number) String() string { return string(n) }
 
-// Float64 returns the number as a float64.
-func (n Number) Float64() (float64, error) {
-	return strconv.ParseFloat(string(n), 64)
-}
+// // Float64 returns the number as a float64.
+// func (n Number) Float64() (float64, error) {
+// 	return strconv.ParseFloat(string(n), 64)
+// }
 
-// Int64 returns the number as an int64.
-func (n Number) Int64() (int64, error) {
-	return strconv.ParseInt(string(n), 10, 64)
-}
+// // Int64 returns the number as an int64.
+// func (n Number) Int64() (int64, error) {
+// 	return strconv.ParseInt(string(n), 10, 64)
+// }
 
 // An errorContext provides context for type errors during decoding.
 type errorContext struct {
@@ -843,7 +844,7 @@ func (d *decodeState) object(v reflect.Value) error {
 // depending on the setting of d.useNumber.
 func (d *decodeState) convertNumber(s string) (any, error) {
 	if d.useNumber {
-		return Number(s), nil
+		return json.Number(s), nil
 	}
 	f, err := strconv.ParseFloat(s, 64)
 	if err != nil {
@@ -852,7 +853,7 @@ func (d *decodeState) convertNumber(s string) (any, error) {
 	return f, nil
 }
 
-var numberType = reflect.TypeOf(Number(""))
+var numberType = reflect.TypeOf(json.Number(""))
 
 // literalStore decodes a literal stored in item into v.
 //

@@ -2,11 +2,12 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package json
+package goj
 
 import (
 	"bytes"
 	"encoding"
+	"encoding/json"
 	"fmt"
 	"log"
 	"math"
@@ -72,11 +73,11 @@ func TestOmitEmpty(t *testing.T) {
 }
 
 type StringTag struct {
-	BoolStr    bool    `json:",string"`
-	IntStr     int64   `json:",string"`
-	UintptrStr uintptr `json:",string"`
-	StrStr     string  `json:",string"`
-	NumberStr  Number  `json:",string"`
+	BoolStr    bool        `json:",string"`
+	IntStr     int64       `json:",string"`
+	UintptrStr uintptr     `json:",string"`
+	StrStr     string      `json:",string"`
+	NumberStr  json.Number `json:",string"`
 }
 
 func TestRoundtripStringTag(t *testing.T) {
@@ -750,9 +751,9 @@ func TestStringBytes(t *testing.T) {
 
 func TestIssue10281(t *testing.T) {
 	type Foo struct {
-		N Number
+		N json.Number
 	}
-	x := Foo{Number(`invalid`)}
+	x := Foo{json.Number(`invalid`)}
 
 	b, err := Marshal(&x)
 	if err == nil {

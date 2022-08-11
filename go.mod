@@ -1,3 +1,3 @@
-module github.com/dcilke/json
+module github.com/dcilke/goj
 
 go 1.18
