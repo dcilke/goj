@@ -96,6 +96,23 @@ func (dec *Decoder) ReadByte() (byte, error) {
 	return 0, io.EOF
 }
 
+// Peak returns the next byte in the stream, without advancing the buffer
+func (dec *Decoder) Peek() (byte, error) {
+	// ensure scanner is set up
+	dec.err = nil
+	dec.scan.reset()
+	_ = dec.refill()
+
+	// read a byte
+	if dec.scanp < len(dec.buf) {
+		b := dec.buf[dec.scanp]
+		return b, nil
+	}
+
+	// no data assume eof
+	return 0, io.EOF
+}
+
 // Buffered returns a reader of the data remaining in the Decoder's
 // buffer. The reader is valid until the next call to Decode.
 func (dec *Decoder) Buffered() io.Reader {
@@ -188,7 +205,7 @@ func (dec *Decoder) refill() error {
 
 func nonSpace(b []byte) bool {
 	for _, c := range b {
-		if !isSpace(c) {
+		if !IsSpace(c) {
 			return true
 		}
 	}
@@ -509,7 +526,7 @@ func (dec *Decoder) peek() (byte, error) {
 	for {
 		for i := dec.scanp; i < len(dec.buf); i++ {
 			c := dec.buf[i]
-			if isSpace(c) {
+			if IsSpace(c) {
 				continue
 			}
 			dec.scanp = i
