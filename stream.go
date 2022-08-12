@@ -83,7 +83,10 @@ func (dec *Decoder) ReadByte() (byte, error) {
 	// ensure scanner is set up
 	dec.err = nil
 	dec.scan.reset()
-	_ = dec.refill()
+	// only refil the buffer if there is nothing to read
+	if dec.scanp >= len(dec.buf) {
+		_ = dec.refill()
+	}
 
 	// read a byte
 	if dec.scanp < len(dec.buf) {
@@ -101,7 +104,10 @@ func (dec *Decoder) Peek() (byte, error) {
 	// ensure scanner is set up
 	dec.err = nil
 	dec.scan.reset()
-	_ = dec.refill()
+	// only refil the buffer if there is nothing to read
+	if dec.scanp >= len(dec.buf) {
+		_ = dec.refill()
+	}
 
 	// read a byte
 	if dec.scanp < len(dec.buf) {
