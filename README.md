@@ -1,4 +1,7 @@
-Forked from https://cs.opensource.google/go/go/+/master:src/encoding/json/;drc=46ab7a5c4f80d912f25b6b3e1044282a2a79df8b
+[![Go Reference](https://pkg.go.dev/badge/github.com/dcilke/goj.svg)](https://pkg.go.dev/github.com/dcilke/goj)
+![Build Status](https://github.com/dcilke/goj/actions/workflows/ci.yml/badge.svg)
+
+Forked from <https://cs.opensource.google/go/go/+/master:src/encoding/json/;drc=46ab7a5c4f80d912f25b6b3e1044282a2a79df8b>
 
 # Addons
 
